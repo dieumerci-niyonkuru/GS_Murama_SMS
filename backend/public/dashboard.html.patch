@@ -1,0 +1,42 @@
+// Add new functions for Head Teacher after existing functions
+async function showExecutiveDashboard() {
+    // Fetch real-time stats, charts
+    const stats = await fetch(`${API_BASE}/dashboard_stats.php`).then(r=>r.json());
+    const results = await fetch(`${API_BASE}/exam_results.php`).then(r=>r.json());
+    const logs = await fetch(`${API_BASE}/system_logs.php`).then(r=>r.json());
+    // Build chart (simplified)
+    document.getElementById('content').innerHTML = `
+        <h2><i class="fas fa-chart-line"></i> Head Teacher Executive Dashboard</h2>
+        <div class="stats">
+            <div class="stat-card"><h3>Total Students</h3><div class="stat-number">${stats.totalStudents}</div></div>
+            <div class="stat-card"><h3>Total Staff</h3><div class="stat-number">${stats.totalTeachers + 5}</div></div>
+            <div class="stat-card"><h3>Fees Collected</h3><div class="stat-number">${stats.totalFees} RWF</div></div>
+            <div class="stat-card"><h3>Outstanding Fees</h3><div class="stat-number">${stats.totalFees?0:0} RWF</div></div>
+        </div>
+        <h3>Exam Performance by Class</h3>
+        <table><tr><th>Level</th><th>Class</th><th>Average Score</th></tr>
+        ${results.data.map(r => `<tr><td>${r.level}</td><td>${r.class}</td><td>${Math.round(r.avg_score)}%</td></tr>`).join('')}
+        </table>
+        <h3>Recent System Logs</h3>
+        <table><tr><th>User</th><th>Action</th><th>Time</th></tr>
+        ${logs.data.slice(0,10).map(l => `<tr><td>${l.admin_sdms_code}</td><td>${l.action}</td><td>${l.created_at}</td></tr>`).join('')}
+        </table>
+    `;
+}
+
+// Add new button for Head Teacher in buildNavButtons
+// Inside buildNavButtons, after other buttons, add:
+if(user.role === 'Head_Teacher') {
+    btns.push({name:'Executive Dashboard', action:'showExecutiveDashboard'});
+    btns.push({name:'Manage Staff', action:'showManageStaff'});
+    btns.push({name:'School Settings', action:'showSchoolSettings'});
+    btns.push({name:'Bulk Import', action:'showBulkImport'});
+    btns.push({name:'Fee Waivers', action:'showFeeWaivers'});
+    btns.push({name:'System Logs', action:'showSystemLogs'});
+}
+
+async function showManageStaff() { /* fetch /api/staff and show CRUD */ }
+async function showSchoolSettings() { /* fetch /api/school_settings and form */ }
+async function showBulkImport() { /* file upload form */ }
+async function showFeeWaivers() { /* list and approve/reject */ }
+async function showSystemLogs() { /* fetch /api/system_logs and display */ }

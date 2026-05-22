@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head><title>Set Password</title><style>body{font-family:Segoe UI;background:linear-gradient(135deg,#1e3c72,#2a5298);display:flex;justify-content:center;align-items:center;height:100vh}.container{background:white;padding:40px;border-radius:20px;width:400px}input{width:100%;padding:10px;margin:10px 0}button{width:100%;padding:10px;background:#2a5298;color:white;border:none}</style></head>
+<body><div class="container"><h2>First Time Setup</h2><div id="msg"></div><form id="setupForm"><input type="text" id="sdms_code" readonly><input type="password" id="password" placeholder="New Password (min 6 chars)" required><input type="password" id="confirm" placeholder="Confirm Password" required><button type="submit">Create Password</button></form></div>
+<script>
+const urlParams = new URLSearchParams(window.location.search);
+document.getElementById('sdms_code').value = urlParams.get('code');
+document.getElementById('setupForm').onsubmit = async (e) => {
+    e.preventDefault();
+    const pwd = document.getElementById('password').value;
+    const confirm = document.getElementById('confirm').value;
+    if(pwd !== confirm) { alert('Passwords do not match'); return; }
+    if(pwd.length < 6) { alert('Minimum 6 characters'); return; }
+    const res = await fetch('http://localhost:8000/api/setup-password.php', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({sdms_code: document.getElementById('sdms_code').value, password: pwd, confirm_password: confirm})
+    });
+    const data = await res.json();
+    if(data.success) window.location.href = 'login.html';
+    else document.getElementById('msg').innerHTML = `<div style="color:red">${data.message}</div>`;
+};
+</script></body></html>

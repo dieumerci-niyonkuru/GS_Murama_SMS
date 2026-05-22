@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API Test</title>
+</head>
+<body>
+    <h2>Test G.S. Murama API</h2>
+    <button onclick="testAPI()">Test API</button>
+    <pre id="result"></pre>
+    
+    <h3>Login Test</h3>
+    <input type="text" id="code" placeholder="SDMS Code" value="31080220004">
+    <input type="password" id="pwd" placeholder="Password" value="Admin@123">
+    <button onclick="testLogin()">Login</button>
+    
+    <script>
+        async function testAPI() {
+            const res = await fetch('http://localhost:8000/test-api.php');
+            const data = await res.json();
+            document.getElementById('result').textContent = JSON.stringify(data, null, 2);
+        }
+        
+        async function testLogin() {
+            const code = document.getElementById('code').value;
+            const pwd = document.getElementById('pwd').value;
+            const res = await fetch('http://localhost:8000/api/login.php', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({sdms_code: code, password: pwd})
+            });
+            const data = await res.json();
+            document.getElementById('result').textContent = JSON.stringify(data, null, 2);
+        }
+    </script>
+</body>
+</html>

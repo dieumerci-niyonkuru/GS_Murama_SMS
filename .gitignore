@@ -1,0 +1,28 @@
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+error_log
+
+# Uploaded files (profile photos, etc.)
+backend/uploads/
+
+# Environment / config with passwords
+backend/.env
+backend/config/.env
+
+# PHP session files
+sess_*
+
+# IDE files
+.vscode/
+.idea/
+
+# Composer
+vendor/
+composer.lock
+
+# Node (if any)
+node_modules/

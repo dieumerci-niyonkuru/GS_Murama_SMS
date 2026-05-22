@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - G.S. Murama</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Segoe UI',sans-serif;background:#f0f2f5;transition:0.3s}
+        body.dark-mode{background:#1a1a1a;color:#eee}
+        body.dark-mode .card, body.dark-mode .content, body.dark-mode header, body.dark-mode footer, body.dark-mode .modal-content{background:#2d2d2d;color:#eee}
+        header{background:linear-gradient(135deg,#1e3c72,#2a5298);color:white;padding:15px 40px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap}
+        .user-info{display:flex;align-items:center;gap:15px}
+        .user-info img{width:40px;height:40px;border-radius:50%;object-fit:cover}
+        .logout-btn, .settings-btn{background:#dc3545;padding:8px 16px;border:none;border-radius:5px;color:white;cursor:pointer;margin-left:10px}
+        .settings-btn{background:#28a745}
+        .container{max-width:1400px;margin:20px auto;padding:0 20px}
+        .nav-buttons{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px}
+        .nav-btn{background:#2a5298;color:white;border:none;padding:10px 20px;border-radius:5px;cursor:pointer}
+        .content{background:white;border-radius:10px;padding:20px;min-height:500px}
+        table{width:100%;border-collapse:collapse}
+        th,td{padding:10px;text-align:left;border-bottom:1px solid #ddd}
+        .modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);justify-content:center;align-items:center;z-index:1000}
+        .modal-content{background:white;padding:20px;border-radius:10px;width:500px;max-height:80vh;overflow-y:auto}
+        .close{float:right;cursor:pointer;font-size:20px}
+        .mode-toggle{background:#ffc107;border:none;padding:5px 10px;border-radius:20px;margin-left:10px;cursor:pointer}
+        footer{background:#1e3c72;color:white;text-align:center;padding:15px;margin-top:40px}
+        .form-group{margin-bottom:15px}
+        .form-group label{display:block;margin-bottom:5px;font-weight:bold}
+        .form-group input, .form-group select, .form-group textarea{width:100%;padding:8px;border:1px solid #ddd;border-radius:4px}
+        .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px;margin-bottom:30px}
+        .stat-card{background:white;padding:20px;border-radius:10px;text-align:center;box-shadow:0 2px 5px rgba(0,0,0,0.1)}
+        .stat-number{font-size:2em;color:#2a5298;font-weight:bold}
+    </style>
+</head>
+<body>
+<header>
+    <div><h2><i class="fas fa-school"></i> G.S. Murama | Digital Management</h2></div>
+    <div class="user-info">
+        <img id="profilePic" src="/uploads/default.png" alt="Profile">
+        <span id="userName"></span>
+        <button class="settings-btn" onclick="openSettings()"><i class="fas fa-cog"></i> Settings</button>
+        <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+        <button class="mode-toggle" onclick="toggleMode()"><i class="fas fa-moon"></i> Dark/Light</button>
+    </div>
+</header>
+<div class="container">
+    <div id="roleButtons" class="nav-buttons"></div>
+    <div id="content" class="content">Loading dashboard...</div>
+</div>
+<footer><p><i class="far fa-copyright"></i> 2026 G.S. Murama – Secure Role-Based Access</p></footer>
+
+<!-- Settings Modal -->
+<div id="settingsModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeSettings()">&times;</span>
+        <h3><i class="fas fa-user-circle"></i> Profile Settings</h3>
+        <form id="profileForm">
+            <div class="form-group"><label>Full Name:</label><input type="text" id="full_name"></div>
+            <div class="form-group"><label>Phone:</label><input type="text" id="phone"></div>
+            <div class="form-group"><label>Email:</label><input type="email" id="email"></div>
+            <button type="submit">Update Profile</button>
+        </form>
+        <hr>
+        <h4>Change Password</h4>
+        <form id="passwordForm">
+            <div class="form-group"><input type="password" id="current_pwd" placeholder="Current Password" required></div>
+            <div class="form-group"><input type="password" id="new_pwd" placeholder="New Password (min 6)" required></div>
+            <div class="form-group"><input type="password" id="confirm_pwd" placeholder="Confirm" required></div>
+            <button type="submit">Change Password</button>
+        </form>
+        <hr>
+        <h4>Profile Photo</h4>
+        <form id="photoForm" enctype="multipart/form-data">
+            <input type="file" id="photo" accept="image/*">
+            <button type="submit">Upload Photo</button>
+        </form>
+        <div id="settingsMsg"></div>
+    </div>
+</div>
+
+<script>
+const API_BASE = '/api';
+let user = null;
+let permissions = null;
+
+function checkAuth() {
+    const token = localStorage.getItem('token');
+    user = JSON.parse(localStorage.getItem('user'));
+    if(!token || !user) window.location.href = 'login.html';
+    permissions = user.permissions;
+    document.getElementById('userName').innerHTML = `${user.full_name} (${user.role})`;
+    if(user.profile_pic) document.getElementById('profilePic').src = '/uploads/' + user.profile_pic;
+}
+
+// ==================== COMMON FUNCTIONS ====================
+async function fetchStats() {
+    const res = await fetch(`${API_BASE}/dashboard_stats.php`);
+    const data = await res.json();
+    if(data.success) {
+        document.getElementById('content').innerHTML = `
+            <h2><i class="fas fa-tachometer-alt"></i> Dashboard</h2>
+            <div class="stats">
+                <div class="stat-card"><h3>Total Students</h3><div class="stat-number">${data.totalStudents}</div></div>
+                <div class="stat-card"><h3>Fees Collected</h3><div class="stat-number">${data.totalFees || 0} RWF</div></div>
+                <div class="stat-card"><h3>Teachers</h3><div class="stat-number">${data.totalTeachers}</div></div>
+                <div class="stat-card"><h3>Library Books</h3><div class="stat-number">${data.totalBooks}</div></div>
+            </div>
+            <p>Welcome to G.S. Murama Digital System. Use the buttons above to manage your role.</p>
+        `;
+    }
+}
+async function showDashboard() { await fetchStats(); }
+
+// Students CRUD (for roles with can_manage_students)
+async function showStudents() {
+    const res = await fetch(`${API_BASE}/students.php`);
+    const data = await res.json();
+    let html = '<h2><i class="fas fa-users"></i> Students</h2>';
+    if(permissions.can_manage_students) html += '<button class="nav-btn" onclick="showAddStudentForm()">+ Add Student</button>';
+    if(data.success && data.data.length) {
+        html += '<table><th>ID</th><th>Student ID</th><th>Name</th><th>Level</th><th>Class</th><th>Parent Phone</th>';
+        if(permissions.can_manage_students) html += '<th>Actions</th>';
+        html += '</tr>';
+        data.data.forEach(s => {
+            html += `<tr><td>${s.id}</td><td>${s.student_id}</td><td>${s.first_name} ${s.last_name}</td><td>${s.level}</td><td>${s.class}</td><td>${s.parent_phone||'-'}</td>`;
+            if(permissions.can_manage_students) html += `<td><button onclick="editStudent(${s.id})">Edit</button> <button onclick="deleteStudent(${s.id})">Delete</button></td>`;
+            html += `</tr>`;
+        });
+        html += '</table>';
+    } else html += '<p>No students found.</p>';
+    document.getElementById('content').innerHTML = html;
+}
+function showAddStudentForm() { /* implementation as before */ alert("Add student form – implement similar to earlier"); }
+async function editStudent(id) { /* similar */ }
+async function deleteStudent(id) { if(confirm('Delete?')) await fetch(`${API_BASE}/students.php?id=${id}`,{method:'DELETE'}); showStudents(); }
+
+// Fees (for Bursar, Head Teacher, Parent view only)
+async function showFees() {
+    const res = await fetch(`${API_BASE}/fees.php`);
+    const data = await res.json();
+    let html = '<h2><i class="fas fa-money-bill-wave"></i> Fee Management</h2>';
+    if(permissions.can_manage_fees) html += '<button class="nav-btn" onclick="showAddFeeForm()">Record Payment</button>';
+    if(data.success && data.data.length) {
+        html += '<table><th>Student</th><th>Amount</th><th>Paid</th><th>Balance</th><th>Term</th><th>Receipt</th><th>Date</th></tr>';
+        data.data.forEach(f => {
+            html += `<tr><td>${f.first_name} ${f.last_name}</td><td>${f.amount}</td><td>${f.paid_amount}</td><td>${f.balance}</td><td>${f.term}</td><td>${f.receipt_number}</td><td>${f.payment_date}</td></tr>`;
+        });
+        html += '</table>';
+    } else html += '<p>No fee records.</p>';
+    document.getElementById('content').innerHTML = html;
+}
+function showAddFeeForm() { alert("Record payment form – implement similar to earlier"); }
+
+// Attendance
+async function showAttendance() {
+    let html = `<h2>Attendance</h2><input type="date" id="attDate" value="${new Date().toISOString().slice(0,10)}"><button onclick="loadAttendance()">Load</button><button class="nav-btn" onclick="saveAttendance()">Save</button><div id="attTable"></div>`;
+    document.getElementById('content').innerHTML = html;
+    await loadAttendance();
+}
+async function loadAttendance() {
+    const date = document.getElementById('attDate').value;
+    const res = await fetch(`${API_BASE}/attendance.php?date=${date}`);
+    const data = await res.json();
+    const studentsRes = await fetch(`${API_BASE}/students.php`);
+    const students = await studentsRes.json();
+    let table = '<table><th>Student</th><th>Class</th><th>Status</th></tr>';
+    students.data.forEach(s => {
+        const existing = data.data.find(a => a.student_id === s.student_id);
+        const status = existing ? existing.status : 'Present';
+        table += `<tr><td>${s.first_name} ${s.last_name}</td><td>${s.class}</td><td><select class="att-status" data-id="${s.student_id}"><option ${status==='Present'?'selected':''}>Present</option><option ${status==='Absent'?'selected':''}>Absent</option><option ${status==='Late'?'selected':''}>Late</option><option ${status==='Excused'?'selected':''}>Excused</option></select></td></tr>`;
+    });
+    table += '</table>';
+    document.getElementById('attTable').innerHTML = table;
+}
+async function saveAttendance() {
+    const date = document.getElementById('attDate').value;
+    const records = [];
+    document.querySelectorAll('.att-status').forEach(select => {
+        records.push({student_id: select.dataset.id, status: select.value});
+    });
+    await fetch(`${API_BASE}/attendance.php`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({date, records, marked_by: user.sdms_code})});
+    alert('Attendance saved');
+}
+
+// Courses (for DOS, Head Teacher, Teacher)
+async function showCourses() {
+    const res = await fetch(`${API_BASE}/courses.php`);
+    const data = await res.json();
+    let html = '<h2>Courses</h2>';
+    if(permissions.can_manage_courses) html += '<button class="nav-btn" onclick="showAddCourseForm()">+ Add Course</button>';
+    if(data.success && data.data.length) {
+        html += '<table><th>Code</th><th>Name</th><th>Level</th><th>Class</th><th>Teacher</th><th>Actions</th></tr>';
+        data.data.forEach(c => {
+            html += `<tr><td>${c.course_code}</td><td>${c.course_name}</td><td>${c.level}</td><td>${c.class}</td><td>${c.teacher_sdms}</td><td>${permissions.can_manage_courses ? `<button onclick="editCourse(${c.id})">Edit</button> <button onclick="deleteCourse(${c.id})">Delete</button>` : ''}</td></tr>`;
+        });
+        html += '</table>';
+    } else html += '<p>No courses.</p>';
+    document.getElementById('content').innerHTML = html;
+}
+function showAddCourseForm() { alert("Add course form"); }
+async function deleteCourse(id) { if(confirm('Delete?')) await fetch(`${API_BASE}/courses.php?id=${id}`,{method:'DELETE'}); showCourses(); }
+
+// Exam Timetable (DOS, Head Teacher)
+async function showExamTimetable() {
+    const res = await fetch(`${API_BASE}/exam_timetable.php`);
+    const data = await res.json();
+    let html = '<h2>Exam Timetable</h2><button class="nav-btn" onclick="showAddExam()">+ Add Exam</button>';
+    if(data.success && data.data.length) {
+        html += '<table><th>Subject</th><th>Class</th><th>Date</th><th>Time</th><th>Room</th><th>Actions</th></tr>';
+        data.data.forEach(e => {
+            html += `<tr><td>${e.subject}</td><td>${e.class}</td><td>${e.exam_date}</td><td>${e.start_time}-${e.end_time}</td><td>${e.room}</td><td><button onclick="deleteExam(${e.id})">Delete</button></td></tr>`;
+        });
+        html += '</table>';
+    } else html += '<p>No exams scheduled.</p>';
+    document.getElementById('content').innerHTML = html;
+}
+function showAddExam() { alert("Add exam form"); }
+async function deleteExam(id) { if(confirm('Delete?')) await fetch(`${API_BASE}/exam_timetable.php?id=${id}`,{method:'DELETE'}); showExamTimetable(); }
+
+// Marks (DOS, Head Teacher, Teacher)
+async function showMarks() {
+    const res = await fetch(`${API_BASE}/marks.php`);
+    const data = await res.json();
+    let html = '<h2>Student Marks</h2><button class="nav-btn" onclick="showAddMarks()">+ Add Marks</button>';
+    if(data.success && data.data.length) {
+        html += '<table><th>Student</th><th>Subject</th><th>Score</th><th>Date</th><th>Actions</th></tr>';
+        data.data.forEach(m => {
+            html += `<tr><td>${m.first_name} ${m.last_name}</td><td>${m.subject}</td><td>${m.score}</td><td>${m.exam_date}</td><td><button onclick="editMarks(${m.id})">Edit</button></td></tr>`;
+        });
+        html += '</table>';
+    } else html += '<p>No marks recorded.</p>';
+    document.getElementById('content').innerHTML = html;
+}
+function showAddMarks() { alert("Add marks form"); }
+async function editMarks(id) { alert("Edit marks: "+id); }
+
+// Reports (printable)
+async function showReports() {
+    document.getElementById('content').innerHTML = `
+        <h2>Reports</h2>
+        <button class="nav-btn" onclick="window.open('/api/reports.php?type=fees','_blank')">Fee Report</button>
+        <button class="nav-btn" onclick="window.open('/api/reports.php?type=attendance','_blank')">Attendance Report</button>
+        <p>Click to generate PDF (use browser print).</p>
+    `;
+}
+
+// Budget (Bursar, Head Teacher)
+async function showBudget() {
+    const res = await fetch(`${API_BASE}/budget.php`);
+    const data = await res.json();
+    document.getElementById('content').innerHTML = `
+        <h2>Budget Overview</h2>
+        <div class="stats">
+            <div class="stat-card"><h3>Income (Fees)</h3><div class="stat-number">${data.income} RWF</div></div>
+            <div class="stat-card"><h3>Expenses</h3><div class="stat-number">${data.expenses} RWF</div></div>
+            <div class="stat-card"><h3>Balance</h3><div class="stat-number">${data.balance} RWF</div></div>
+        </div>
+        <form id="expenseForm"><div class="form-group"><label>Description</label><input type="text" id="exp_desc" required></div><div class="form-group"><label>Amount</label><input type="number" id="exp_amount" required></div><button type="submit">Add Expense</button></form>
+    `;
+    document.getElementById('expenseForm').onsubmit = async (e) => {
+        e.preventDefault();
+        await fetch(`${API_BASE}/budget.php`, {method:'POST', body:JSON.stringify({description: document.getElementById('exp_desc').value, amount: document.getElementById('exp_amount').value})});
+        showBudget();
+    };
+}
+
+// Discipline (DOD)
+async function showDisciplineRecords() {
+    const res = await fetch(`${API_BASE}/discipline.php`);
+    const data = await res.json();
+    let html = '<h2>Discipline Records</h2><button class="nav-btn" onclick="showAddDisciplineForm()">+ Add Record</button>';
+    if(data.success && data.data.length) {
+        html += '<table><th>Student</th><th>Date</th><th>Type</th><th>Description</th><th>Action</th></tr>';
+        data.data.forEach(d => {
+            html += `<tr><td>${d.first_name} ${d.last_name}</td><td>${d.date}</td><td>${d.incident_type}</td><td>${d.description}</td><td>${d.action_taken}</td></tr>`;
+        });
+        html += '</table>';
+    } else html += '<p>No records.</p>';
+    document.getElementById('content').innerHTML = html;
+}
+function showAddDisciplineForm() { alert("Add discipline form"); }
+
+// Announcements (Secretary, Head Teacher)
+async function showAnnouncements() {
+    const res = await fetch(`${API_BASE}/announcements.php`);
+    const data = await res.json();
+    let html = '<h2>Announcements</h2><button class="nav-btn" onclick="showAddAnnouncement()">+ Post Announcement</button>';
+    if(data.success && data.data.length) {
+        html += '<ul>';
+        data.data.forEach(a => {
+            html += `<li><strong>${a.title}</strong> - ${a.message} <em>(${a.created_at})</em></li>`;
+        });
+        html += '</ul>';
+    } else html += '<p>No announcements.</p>';
+    document.getElementById('content').innerHTML = html;
+}
+function showAddAnnouncement() { alert("Add announcement form"); }
+
+// Profile and settings (same for all)
+function openSettings() { document.getElementById('settingsModal').style.display = 'flex'; loadProfile(); }
+function closeSettings() { document.getElementById('settingsModal').style.display = 'none'; }
+async function loadProfile() {
+    document.getElementById('full_name').value = user.full_name || '';
+    document.getElementById('phone').value = user.phone || '';
+    document.getElementById('email').value = user.email || '';
+}
+document.getElementById('profileForm').onsubmit = async (e) => {
+    e.preventDefault();
+    const data = {full_name: document.getElementById('full_name').value, phone: document.getElementById('phone').value, email: document.getElementById('email').value};
+    const res = await fetch(`${API_BASE}/update_profile.php`, {method:'POST', headers:{'Content-Type':'application/json', 'Authorization':'Bearer '+localStorage.getItem('token')}, body:JSON.stringify(data)});
+    const result = await res.json();
+    alert(result.message);
+    if(result.success) { user.full_name = data.full_name; localStorage.setItem('user', JSON.stringify(user)); document.getElementById('userName').innerHTML = `${user.full_name} (${user.role})`; }
+};
+document.getElementById('passwordForm').onsubmit = async (e) => {
+    e.preventDefault();
+    const curr = document.getElementById('current_pwd').value;
+    const newp = document.getElementById('new_pwd').value;
+    const conf = document.getElementById('confirm_pwd').value;
+    if(newp !== conf) { alert('Passwords do not match'); return; }
+    if(newp.length < 6) { alert('Minimum 6 characters'); return; }
+    const res = await fetch(`${API_BASE}/change_password.php`, {method:'POST', headers:{'Content-Type':'application/json', 'Authorization':'Bearer '+localStorage.getItem('token')}, body:JSON.stringify({current_password:curr, new_password:newp})});
+    const data = await res.json();
+    alert(data.message);
+};
+document.getElementById('photoForm').onsubmit = async (e) => {
+    e.preventDefault();
+    const formData = new FormData();
+    formData.append('photo', document.getElementById('photo').files[0]);
+    const res = await fetch(`${API_BASE}/upload_photo.php`, {method:'POST', headers:{'Authorization':'Bearer '+localStorage.getItem('token')}, body:formData});
+    const data = await res.json();
+    if(data.success) { alert('Photo updated'); document.getElementById('profilePic').src = data.photo_url + '?t='+Date.now(); }
+    else alert(data.message);
+};
+
+function logout() { localStorage.clear(); window.location.href = 'login.html'; }
+function toggleMode() { document.body.classList.toggle('dark-mode'); localStorage.setItem('darkMode', document.body.classList.contains('dark-mode')); }
+if (localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark-mode');
+
+// ==================== ROLE-BASED BUTTON BUILD ====================
+function buildNavButtons() {
+    const container = document.getElementById('roleButtons');
+    const btns = [];
+
+    // Role-specific buttons based on permissions
+    if(permissions.can_manage_students) btns.push({name:'Students', action:'showStudents'});
+    if(permissions.can_manage_fees) btns.push({name:'Fees', action:'showFees'});
+    if(permissions.can_manage_courses) btns.push({name:'Courses', action:'showCourses'});
+    if(permissions.can_manage_attendance) btns.push({name:'Attendance', action:'showAttendance'});
+    if(permissions.can_view_reports) btns.push({name:'Reports', action:'showReports'});
+
+    // Additional buttons for specific roles
+    if(user.role === 'Head_Teacher') {
+        btns.push({name:'Exam Timetable', action:'showExamTimetable'});
+        btns.push({name:'Student Marks', action:'showMarks'});
+        btns.push({name:'Budget', action:'showBudget'});
+        btns.push({name:'Discipline', action:'showDisciplineRecords'});
+        btns.push({name:'Announcements', action:'showAnnouncements'});
+    } else if(user.role === 'DOS') {
+        btns.push({name:'Exam Timetable', action:'showExamTimetable'});
+        btns.push({name:'Student Marks', action:'showMarks'});
+    } else if(user.role === 'DOD') {
+        btns.push({name:'Discipline', action:'showDisciplineRecords'});
+    } else if(user.role === 'Bursar') {
+        btns.push({name:'Budget', action:'showBudget'});
+    } else if(user.role === 'Secretary') {
+        btns.push({name:'Announcements', action:'showAnnouncements'});
+    } else if(user.role === 'Teacher') {
+        btns.push({name:'My Courses', action:'showCourses'});
+        btns.push({name:'My Class Attendance', action:'showAttendance'});
+        btns.push({name:'Enter Marks', action:'showMarks'});
+    } else if(user.role === 'Class_Master') {
+        btns.push({name:'My Class Students', action:'showStudents'});
+        btns.push({name:'Class Attendance', action:'showAttendance'});
+        btns.push({name:'Class Reports', action:'showReports'});
+    } else if(user.role === 'Parent') {
+        btns.push({name:'Child Fees', action:'showFees'});
+        btns.push({name:'Child Marks', action:'showMarks'});
+        btns.push({name:'Child Attendance', action:'showAttendance'});
+        btns.push({name:'Announcements', action:'showAnnouncements'});
+    }
+
+    if(btns.length === 0) btns.push({name:'Dashboard', action:'showDashboard'});
+    container.innerHTML = btns.map(b => `<button class="nav-btn" onclick="${b.action}()">${b.name}</button>`).join('');
+}
+
+// Initialize
+checkAuth();
+buildNavButtons();
+showDashboard();
+</script>
+</body>
+</html>
