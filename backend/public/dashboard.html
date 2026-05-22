@@ -26,6 +26,7 @@
         .modal-content{background:white;padding:20px;border-radius:10px;width:500px;max-height:80vh;overflow-y:auto}
         .close{float:right;cursor:pointer;font-size:20px}
         .mode-toggle{background:#ffc107;border:none;padding:5px 10px;border-radius:20px;margin-left:10px;cursor:pointer}
+        <button id="langToggle" class="mode-toggle" onclick="toggleLanguage()" style="margin-left:5px">Kinyarwanda</button>
         footer{background:#1e3c72;color:white;text-align:center;padding:15px;margin-top:40px}
         .form-group{margin-bottom:15px}
         .form-group label{display:block;margin-bottom:5px;font-weight:bold}
@@ -44,6 +45,7 @@
         <button class="settings-btn" onclick="openSettings()"><i class="fas fa-cog"></i> Settings</button>
         <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
         <button class="mode-toggle" onclick="toggleMode()"><i class="fas fa-moon"></i> Dark/Light</button>
+        <button id="langToggle" class="mode-toggle" onclick="toggleLanguage()" style="margin-left:5px">Kinyarwanda</button>
     </div>
 </header>
 <div class="container">
@@ -361,6 +363,7 @@ checkAuth();
 buildNavButtons();
 showDashboard();
 </script>
+    <script src="/js/lang.js"></script>
 </body>
 </html>
 
