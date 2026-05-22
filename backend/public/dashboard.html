@@ -113,14 +113,14 @@ async function fetchStats() {
 }
 async function showDashboard() { await fetchStats(); }
 
-// Students CRUD (simplified)
+// ==================== STUDENTS ====================
 async function showStudents() {
     const res = await fetch(`${API_BASE}/students.php`);
     const data = await res.json();
     let html = '<h2><i class="fas fa-users"></i> Students</h2>';
     if(permissions.can_manage_students) html += '<button class="nav-btn" onclick="showAddStudentForm()">+ Add Student</button>';
     if(data.success && data.data.length) {
-        html += '<table><th>Student ID</th><th>Name</th><th>Level</th><th>Class</th><th>Parent Phone</th>';
+        html += '能秒<th>Student ID</th><th>Name</th><th>Level</th><th>Class</th><th>Parent Phone</th>';
         if(permissions.can_manage_students) html += '<th>Actions</th>';
         html += '</tr>';
         data.data.forEach(s => {
@@ -132,18 +132,18 @@ async function showStudents() {
     } else html += '<p>No students found.</p>';
     document.getElementById('content').innerHTML = html;
 }
-function showAddStudentForm() { alert("Add student form – implement similarly to earlier"); }
+function showAddStudentForm() { alert("Add student form – implement similarly"); }
 async function editStudent(id) { alert("Edit student "+id); }
 async function deleteStudent(id) { if(confirm('Delete?')) await fetch(`${API_BASE}/students.php?id=${id}`,{method:'DELETE'}); showStudents(); }
 
-// Fees module with Priority 1 features
+// ==================== FEES MODULE ====================
 async function showFees() {
     const res = await fetch(`${API_BASE}/fees.php`);
     const data = await res.json();
     let html = '<h2><i class="fas fa-money-bill-wave"></i> Fee Management</h2>';
     if(permissions.can_manage_fees) html += '<button class="nav-btn" onclick="showAddFeeForm()">Record Payment</button>';
     if(data.success && data.data.length) {
-        html += '<table><th>Student</th><th>Amount</th><th>Paid</th><th>Balance</th><th>Term</th><th>Receipt</th><th>Date</th><th>Actions</th></tr>';
+        html += '能秒<th>Student</th><th>Amount</th><th>Paid</th><th>Balance</th><th>Term</th><th>Receipt</th><th>Date</th><th>Actions</th></tr>';
         data.data.forEach(f => {
             html += `<tr><td>${f.first_name} ${f.last_name}</td><td>${f.amount}</td><td>${f.paid_amount}</td><td>${f.balance}</td><td>${f.term}</td><td>${f.receipt_number}</td><td>${f.payment_date}</td><td><button onclick="printReceipt(${f.id})">Receipt</button></td></tr>`;
         });
@@ -151,16 +151,14 @@ async function showFees() {
     } else html += '<p>No fee records.</p>';
     document.getElementById('content').innerHTML = html;
 }
-function showAddFeeForm() { alert("Record payment form – implement similarly to earlier"); }
+function showAddFeeForm() { alert("Record payment form – implement"); }
 function printReceipt(id) { window.open(`${API_BASE}/receipt.php?id=${id}`, '_blank'); }
-
-// Defaulters list
 async function showDefaulters() {
     const res = await fetch(`${API_BASE}/fees_defaulters.php`);
     const data = await res.json();
     let html = '<h2><i class="fas fa-exclamation-triangle"></i> Fee Defaulters</h2>';
     if(data.success && data.data.length) {
-        html += '<table><th>Student ID</th><th>Name</th><th>Class</th><th>Total Fees</th><th>Paid</th><th>Balance</th></tr>';
+        html += '能秒<th>Student ID</th><th>Name</th><th>Class</th><th>Total Fees</th><th>Paid</th><th>Balance</th></tr>';
         data.data.forEach(d => {
             html += `<tr><td>${d.student_id}</td><td>${d.first_name} ${d.last_name}</td><td>${d.class}</td><td>${d.total_fees}</td><td>${d.total_paid}</td><td style="color:red;font-weight:bold">${d.balance}</td></tr>`;
         });
@@ -168,8 +166,6 @@ async function showDefaulters() {
     } else html += '<p>No defaulters. All fees paid!</p>';
     document.getElementById('content').innerHTML = html;
 }
-
-// Financial report with chart and CSV export
 async function showFinancialReport() {
     const res = await fetch(`${API_BASE}/fees_report.php`);
     const data = await res.json();
@@ -193,16 +189,245 @@ async function showFinancialReport() {
 }
 function exportFeesCSV() { window.open(`${API_BASE}/export_fees_csv.php`, '_blank'); }
 
-// Attendance, Courses, etc. (simplified placeholders – you can add more)
-async function showAttendance() { document.getElementById('content').innerHTML = '<h2>Attendance</h2><p>Module ready. Mark daily attendance.</p>'; }
-async function showCourses() { document.getElementById('content').innerHTML = '<h2>Courses</h2><p>Course management.</p>'; }
-async function showMarks() { document.getElementById('content').innerHTML = '<h2>Marks</h2><p>Enter exam results.</p>'; }
-async function showReports() { document.getElementById('content').innerHTML = '<h2>Reports</h2><p>Generate PDF reports.</p>'; }
-async function showBudget() { document.getElementById('content').innerHTML = '<h2>Budget</h2><p>Income/Expense tracking.</p>'; }
-async function showDisciplineRecords() { document.getElementById('content').innerHTML = '<h2>Discipline</h2><p>Student behavior records.</p>'; }
-async function showAnnouncements() { document.getElementById('content').innerHTML = '<h2>Announcements</h2><p>School notices.</p>'; }
+// ==================== ATTENDANCE ====================
+async function showAttendance() {
+    document.getElementById('content').innerHTML = '<h2>Attendance</h2><p>Module ready. Mark daily attendance.</p>';
+}
 
-// Profile and settings (unchanged)
+// ==================== COURSES ====================
+async function showCourses() {
+    const res = await fetch(`${API_BASE}/courses.php`);
+    const data = await res.json();
+    let html = '<h2>Courses</h2>';
+    if(permissions.can_manage_courses) html += '<button class="nav-btn" onclick="showAddCourseForm()">+ Add Course</button>';
+    if(data.success && data.data.length) {
+        html += '能秒<th>Code</th><th>Name</th><th>Level</th><th>Class</th><th>Teacher</th><th>Actions</th></tr>';
+        data.data.forEach(c => {
+            html += `<tr><td>${c.course_code}</td><td>${c.course_name}</td><td>${c.level}</td><td>${c.class}</td><td>${c.teacher_sdms}</td><td>${permissions.can_manage_courses ? `<button onclick="editCourse(${c.id})">Edit</button> <button onclick="deleteCourse(${c.id})">Delete</button>` : ''}</td></tr>`;
+        });
+        html += '</table>';
+    } else html += '<p>No courses.</p>';
+    document.getElementById('content').innerHTML = html;
+}
+function showAddCourseForm() { alert("Add course form"); }
+async function deleteCourse(id) { if(confirm('Delete?')) await fetch(`${API_BASE}/courses.php?id=${id}`,{method:'DELETE'}); showCourses(); }
+
+// ==================== MARKS ====================
+async function showMarks() {
+    document.getElementById('content').innerHTML = '<h2>Marks</h2><p>Enter exam results.</p>';
+}
+
+// ==================== REPORTS ====================
+async function showReports() {
+    document.getElementById('content').innerHTML = '<h2>Reports</h2><p>Generate PDF reports.</p>';
+}
+
+// ==================== BUDGET ====================
+async function showBudget() {
+    document.getElementById('content').innerHTML = '<h2>Budget</h2><p>Income/Expense tracking.</p>';
+}
+
+// ==================== DISCIPLINE ====================
+async function showDisciplineRecords() {
+    document.getElementById('content').innerHTML = '<h2>Discipline</h2><p>Student behavior records.</p>';
+}
+
+// ==================== ANNOUNCEMENTS ====================
+async function showAnnouncements() {
+    document.getElementById('content').innerHTML = '<h2>Announcements</h2><p>School notices.</p>';
+}
+
+// ==================== TEACHER PORTAL ====================
+async function showMyCourses() {
+    const res = await fetch(`${API_BASE}/courses.php`);
+    const data = await res.json();
+    let html = '<h2><i class="fas fa-chalkboard"></i> My Courses</h2>';
+    if(data.success && data.data.length) {
+        html += '<ul style="list-style:none">';
+        data.data.forEach(c => {
+            html += `<li style="margin-bottom:20px;border:1px solid #ddd;padding:10px">
+                        <strong>${c.course_name}</strong> (${c.level} - ${c.class})<br>
+                        <button class="nav-btn" onclick="showMaterials(${c.id})">Materials</button>
+                        <button class="nav-btn" onclick="showHomework(${c.id})">Homework</button>
+                        <button class="nav-btn" onclick="uploadMaterialForm(${c.id})">Upload Material</button>
+                        <button class="nav-btn" onclick="assignHomeworkForm(${c.id})">Assign Homework</button>
+                     </li>`;
+        });
+        html += '</ul>';
+    } else html += '<p>No courses assigned to you.</p>';
+    document.getElementById('content').innerHTML = html;
+}
+async function showMaterials(courseId) {
+    const res = await fetch(`${API_BASE}/get_materials.php?course_id=${courseId}`);
+    const data = await res.json();
+    let html = '<h3>Course Materials</h3>';
+    if(data.success && data.data.length) {
+        html += '<ul>';
+        data.data.forEach(m => {
+            html += `<li><a href="${m.file_path}" target="_blank">${m.title}</a> - ${m.description} <small>(${m.upload_date})</small></li>`;
+        });
+        html += '</ul>';
+    } else html += '<p>No materials yet.</p>';
+    document.getElementById('content').innerHTML = html;
+}
+async function showHomework(courseId) {
+    const res = await fetch(`${API_BASE}/get_homework.php?course_id=${courseId}`);
+    const data = await res.json();
+    let html = '<h3>Homework Assignments</h3>';
+    if(data.success && data.data.length) {
+        html += '<ul>';
+        data.data.forEach(h => {
+            html += `<li><strong>${h.title}</strong> (Due: ${h.due_date})<br>${h.description}<br><a href="${h.file_path}" target="_blank">Attachment</a></li>`;
+        });
+        html += '</ul>';
+    } else html += '<p>No homework assigned.</p>';
+    document.getElementById('content').innerHTML = html;
+}
+function uploadMaterialForm(courseId) {
+    document.getElementById('content').innerHTML = `
+        <h3>Upload Course Material</h3>
+        <form id="materialForm" enctype="multipart/form-data">
+            <input type="hidden" name="course_id" value="${courseId}">
+            <div class="form-group"><label>Title</label><input type="text" name="title" required></div>
+            <div class="form-group"><label>Description</label><textarea name="description"></textarea></div>
+            <div class="form-group"><label>File (PDF, DOC, PPT)</label><input type="file" name="file" accept=".pdf,.doc,.docx,.ppt,.pptx" required></div>
+            <button type="submit">Upload</button>
+        </form>
+    `;
+    document.getElementById('materialForm').onsubmit = async (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const res = await fetch(`${API_BASE}/upload_material.php`, { method:'POST', headers:{'Authorization':'Bearer '+localStorage.getItem('token')}, body:formData });
+        const data = await res.json();
+        alert(data.message);
+        if(data.success) showMyCourses();
+    };
+}
+function assignHomeworkForm(courseId) {
+    document.getElementById('content').innerHTML = `
+        <h3>Assign Homework</h3>
+        <form id="homeworkForm" enctype="multipart/form-data">
+            <input type="hidden" name="course_id" value="${courseId}">
+            <div class="form-group"><label>Title</label><input type="text" name="title" required></div>
+            <div class="form-group"><label>Description</label><textarea name="description" required></textarea></div>
+            <div class="form-group"><label>Due Date</label><input type="date" name="due_date" required></div>
+            <div class="form-group"><label>Attachment (optional)</label><input type="file" name="file"></div>
+            <button type="submit">Assign</button>
+        </form>
+    `;
+    document.getElementById('homeworkForm').onsubmit = async (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const res = await fetch(`${API_BASE}/upload_homework.php`, { method:'POST', headers:{'Authorization':'Bearer '+localStorage.getItem('token')}, body:formData });
+        const data = await res.json();
+        alert(data.message);
+        if(data.success) showMyCourses();
+    };
+}
+
+// ==================== PARENT PORTAL ====================
+async function showMyChildren() {
+    const res = await fetch(`${API_BASE}/my_children.php`, { headers:{'Authorization':'Bearer '+localStorage.getItem('token')} });
+    const data = await res.json();
+    let html = '<h2><i class="fas fa-children"></i> My Children</h2>';
+    if(data.success && data.data.length) {
+        html += '<ul>';
+        data.data.forEach(child => {
+            html += `<li><strong>${child.first_name} ${child.last_name}</strong> (${child.class})<br>
+                        <button class="nav-btn" onclick="viewChildFees('${child.student_id}')">Fees</button>
+                        <button class="nav-btn" onclick="viewChildMarks('${child.student_id}')">Marks</button>
+                        <button class="nav-btn" onclick="viewChildAttendance('${child.student_id}')">Attendance</button>
+                        <button class="nav-btn" onclick="viewChildReportCard('${child.student_id}')">Report Card</button>
+                     </li>`;
+        });
+        html += '</ul>';
+    } else html += '<p>No children linked to your email.</p>';
+    document.getElementById('content').innerHTML = html;
+}
+async function viewChildFees(studentId) {
+    const res = await fetch(`${API_BASE}/fees.php?student_id=${studentId}`);
+    const data = await res.json();
+    let html = '<h3>Fees for ' + studentId + '</h3>';
+    if(data.success && data.data.length) {
+        html += '能秒<th>Amount</th><th>Paid</th><th>Balance</th><th>Term</th><th>Receipt</th></tr>';
+        data.data.forEach(f => {
+            html += `<tr><td>${f.amount}</td><td>${f.paid_amount}</td><td>${f.balance}</td><td>${f.term}</td><td>${f.receipt_number}</td></tr>`;
+        });
+        html += '</table>';
+    } else html += '<p>No fee records.</p>';
+    document.getElementById('content').innerHTML = html;
+}
+async function viewChildMarks(studentId) {
+    const res = await fetch(`${API_BASE}/marks.php?student_id=${studentId}`);
+    const data = await res.json();
+    let html = '<h3>Marks for ' + studentId + '</h3>';
+    if(data.success && data.data.length) {
+        html += '能秒<th>Subject</th><th>Score</th><th>Date</th></tr>';
+        data.data.forEach(m => {
+            html += `<tr><td>${m.subject}</td><td>${m.score}</td><td>${m.exam_date}</td></tr>`;
+        });
+        html += '<tr>';
+    } else html += '<p>No marks recorded.</p>';
+    document.getElementById('content').innerHTML = html;
+}
+async function viewChildAttendance(studentId) {
+    const res = await fetch(`${API_BASE}/student_attendance_summary.php?student_id=${studentId}`);
+    const data = await res.json();
+    let html = '<h3>Attendance for ' + studentId + '</h3>';
+    if(data.success && data.data.length) {
+        const rec = data.data[0];
+        html += `<p>Absences: ${rec.absences}, Lates: ${rec.lates}</p>`;
+    } else html += '<p>No attendance data.</p>';
+    document.getElementById('content').innerHTML = html;
+}
+function viewChildReportCard(studentId) {
+    window.open(`${API_BASE}/report_card.php?student_id=${studentId}`, '_blank');
+}
+
+// ==================== STUDENT PORTAL ====================
+async function showStudentDashboard() {
+    const studentId = user.sdms_code;
+    let html = `<h2>Welcome, ${user.full_name}</h2>
+                <div class="stats">
+                    <div class="stat-card"><button class="nav-btn" onclick="viewOwnMarks('${studentId}')">My Marks</button></div>
+                    <div class="stat-card"><button class="nav-btn" onclick="viewOwnFees('${studentId}')">My Fees</button></div>
+                    <div class="stat-card"><button class="nav-btn" onclick="viewOwnAttendance('${studentId}')">My Attendance</button></div>
+                    <div class="stat-card"><button class="nav-btn" onclick="viewOwnReportCard('${studentId}')">Report Card</button></div>
+                </div>`;
+    document.getElementById('content').innerHTML = html;
+}
+async function viewOwnMarks(studentId) { await viewChildMarks(studentId); }
+async function viewOwnFees(studentId) { await viewChildFees(studentId); }
+async function viewOwnAttendance(studentId) { await viewChildAttendance(studentId); }
+function viewOwnReportCard(studentId) { window.open(`${API_BASE}/report_card.php?student_id=${studentId}`, '_blank'); }
+
+// ==================== HEAD TEACHER: REPORT CARDS BY CLASS ====================
+async function generateReportCardsForClass() {
+    const res = await fetch(`${API_BASE}/students.php`);
+    const data = await res.json();
+    if(!data.success || !data.data.length) {
+        document.getElementById('content').innerHTML = '<p>No students found.</p>';
+        return;
+    }
+    let classes = [...new Set(data.data.map(s => s.class))];
+    let html = '<h2>Generate Report Cards</h2><select id="classSelect">';
+    classes.forEach(c => { html += `<option value="${c}">${c}</option>`; });
+    html += `</select><button class="nav-btn" onclick="generateClassReportCards()">Generate for Class</button><div id="reportLinks"></div>`;
+    document.getElementById('content').innerHTML = html;
+}
+async function generateClassReportCards() {
+    const className = document.getElementById('classSelect').value;
+    const res = await fetch(`${API_BASE}/students.php?class=${className}`);
+    const data = await res.json();
+    let links = '<h3>Report Cards</h3><ul>';
+    data.data.forEach(s => {
+        links += `<li><a href="${API_BASE}/report_card.php?student_id=${s.student_id}" target="_blank">${s.first_name} ${s.last_name}</a></li>`;
+    });
+    links += '</ul>';
+    document.getElementById('reportLinks').innerHTML = links;
+}
+
+// ==================== PROFILE SETTINGS ====================
 function openSettings() { document.getElementById('settingsModal').style.display = 'flex'; loadProfile(); }
 function closeSettings() { document.getElementById('settingsModal').style.display = 'none'; }
 async function loadProfile() {
@@ -213,7 +438,7 @@ async function loadProfile() {
 document.getElementById('profileForm').onsubmit = async (e) => {
     e.preventDefault();
     const data = {full_name: document.getElementById('full_name').value, phone: document.getElementById('phone').value, email: document.getElementById('email').value};
-    const res = await fetch(`${API_BASE}/update_profile.php`, {method:'POST', headers:{'Content-Type':'application/json', 'Authorization':'Bearer '+localStorage.getItem('token')}, body:JSON.stringify(data)});
+    const res = await fetch(`${API_BASE}/update_profile.php`, { method:'POST', headers:{'Content-Type':'application/json', 'Authorization':'Bearer '+localStorage.getItem('token')}, body:JSON.stringify(data) });
     const result = await res.json();
     alert(result.message);
     if(result.success) { user.full_name = data.full_name; localStorage.setItem('user', JSON.stringify(user)); document.getElementById('userName').innerHTML = `${user.full_name} (${user.role})`; }
@@ -225,7 +450,7 @@ document.getElementById('passwordForm').onsubmit = async (e) => {
     const conf = document.getElementById('confirm_pwd').value;
     if(newp !== conf) { alert('Passwords do not match'); return; }
     if(newp.length < 6) { alert('Minimum 6 characters'); return; }
-    const res = await fetch(`${API_BASE}/change_password.php`, {method:'POST', headers:{'Content-Type':'application/json', 'Authorization':'Bearer '+localStorage.getItem('token')}, body:JSON.stringify({current_password:curr, new_password:newp})});
+    const res = await fetch(`${API_BASE}/change_password.php`, { method:'POST', headers:{'Content-Type':'application/json', 'Authorization':'Bearer '+localStorage.getItem('token')}, body:JSON.stringify({current_password:curr, new_password:newp}) });
     const data = await res.json();
     alert(data.message);
 };
@@ -233,7 +458,7 @@ document.getElementById('photoForm').onsubmit = async (e) => {
     e.preventDefault();
     const formData = new FormData();
     formData.append('photo', document.getElementById('photo').files[0]);
-    const res = await fetch(`${API_BASE}/upload_photo.php`, {method:'POST', headers:{'Authorization':'Bearer '+localStorage.getItem('token')}, body:formData});
+    const res = await fetch(`${API_BASE}/upload_photo.php`, { method:'POST', headers:{'Authorization':'Bearer '+localStorage.getItem('token')}, body:formData });
     const data = await res.json();
     if(data.success) { alert('Photo updated'); document.getElementById('profilePic').src = data.photo_url + '?t='+Date.now(); }
     else alert(data.message);
@@ -242,9 +467,11 @@ function logout() { localStorage.clear(); window.location.href = 'login.html'; }
 function toggleMode() { document.body.classList.toggle('dark-mode'); localStorage.setItem('darkMode', document.body.classList.contains('dark-mode')); }
 if (localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark-mode');
 
+// ==================== ROLE-BASED BUTTON BUILD ====================
 function buildNavButtons() {
     const container = document.getElementById('roleButtons');
     const btns = [];
+
     if(permissions.can_manage_students) btns.push({name:'Students', action:'showStudents'});
     if(permissions.can_manage_fees) {
         btns.push({name:'Fees', action:'showFees'});
@@ -256,7 +483,19 @@ function buildNavButtons() {
     if(permissions.can_view_reports) btns.push({name:'Reports', action:'showReports'});
     if(permissions.can_manage_budget) btns.push({name:'Budget', action:'showBudget'});
     if(permissions.can_manage_discipline) btns.push({name:'Discipline', action:'showDisciplineRecords'});
+    
     if(user.role === 'Secretary') btns.push({name:'Announcements', action:'showAnnouncements'});
+    if(user.role === 'Teacher') {
+        btns.push({name:'My Courses', action:'showMyCourses'});
+        btns.push({name:'Attendance', action:'showAttendance'});
+        btns.push({name:'Enter Marks', action:'showMarks'});
+    }
+    if(user.role === 'Parent') btns.push({name:'My Children', action:'showMyChildren'});
+    if(user.role === 'Student') btns.push({name:'My Dashboard', action:'showStudentDashboard'});
+    if(user.role === 'Head_Teacher') {
+        btns.push({name:'Generate Report Cards', action:'generateReportCardsForClass'});
+    }
+
     if(btns.length===0) btns.push({name:'Dashboard', action:'showDashboard'});
     container.innerHTML = btns.map(b => `<button class="nav-btn" onclick="${b.action}()">${b.name}</button>`).join('');
 }
