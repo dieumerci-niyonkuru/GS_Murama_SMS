@@ -1,38 +1,123 @@
 <!DOCTYPE html>
-<html>
-<head><title>Login - G.S. Murama</title><style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:Segoe UI;background:linear-gradient(135deg,#1e3c72,#2a5298);height:100vh;display:flex;justify-content:center;align-items:center}
-.container{background:white;border-radius:20px;padding:40px;width:400px}
-h2{color:#1e3c72;margin-bottom:20px}
-input{width:100%;padding:12px;margin:10px 0;border:1px solid #ddd;border-radius:8px}
-button{width:100%;padding:12px;background:#2a5298;color:white;border:none;border-radius:8px;cursor:pointer}
-.error{color:red;margin-top:10px}
-</style></head>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - G.S. Murama</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Segoe UI',sans-serif;background:url('https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=1400') center/cover fixed;min-height:100vh;display:flex;flex-direction:column}
+        header{background:linear-gradient(135deg,#1e3c72,#2a5298);color:white;padding:20px 40px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap}
+        .logo h1{font-size:28px}
+        .logo p{font-size:12px;opacity:0.8}
+        .nav a{color:white;margin-left:20px;text-decoration:none;font-weight:500}
+        .login-container{max-width:450px;margin:40px auto;background:rgba(255,255,255,0.95);border-radius:20px;padding:40px;box-shadow:0 20px 40px rgba(0,0,0,0.3);backdrop-filter:blur(2px)}
+        .login-container h2{color:#1e3c72;text-align:center;margin-bottom:10px}
+        .input-group{position:relative;margin-bottom:20px}
+        .input-group i{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#aaa}
+        input{width:100%;padding:12px 12px 12px 40px;border:1px solid #ddd;border-radius:8px;font-size:16px}
+        button{width:100%;padding:12px;background:#2a5298;color:white;border:none;border-radius:8px;cursor:pointer;font-size:16px;margin-top:10px}
+        button:hover{background:#1e3c72}
+        .error{color:red;margin-top:10px;text-align:center}
+        .language-switch{display:flex;justify-content:center;gap:10px;margin-top:15px}
+        .mode-toggle{background:#ffc107;color:#1e3c72;border:none;padding:8px 12px;border-radius:20px;cursor:pointer}
+        .back-home{text-align:center;margin-top:20px}
+        .footer{background:#1e3c72;color:white;text-align:center;padding:20px;margin-top:auto}
+        .footer .social a{color:white;margin:0 10px;font-size:20px}
+        @media (max-width:768px){.login-container{margin:20px;padding:25px}}
+    </style>
+</head>
 <body>
-<div class="container">
-    <h2>🏫 G.S. Murama – Staff Login</h2>
-    <p>Enter your SDMS Code and password</p>
-    <div id="msg"></div>
+<header>
+    <div class="logo"><h1><i class="fas fa-school"></i> G.S. Murama</h1><p>Kisaro, Rwanda | Nursery · Primary · Secondary</p></div>
+    <div class="nav">
+        <a href="index.html"><i class="fas fa-home"></i> Home</a>
+        <a href="index.html#about">About</a>
+        <a href="index.html#academics">Academics</a>
+        <a href="index.html#contact">Contact</a>
+        <button class="mode-toggle" onclick="toggleMode()"><i class="fas fa-moon"></i> Dark/Light</button>
+        <button id="langToggle" class="mode-toggle" onclick="toggleLanguage()" style="margin-left:5px">Kinyarwanda</button>
+    </div>
+</header>
+
+<div class="login-container">
+    <h2><i class="fas fa-graduation-cap"></i> Staff Login</h2>
+    <p style="text-align:center; margin-bottom:20px">Enter your SDMS Code and password</p>
+    <div id="msg" class="error"></div>
     <form id="loginForm">
-        <input type="text" id="sdms_code" placeholder="SDMS Code" required>
-        <input type="password" id="password" placeholder="Password" required>
-        <button type="submit">Login</button>
+        <div class="input-group"><i class="fas fa-id-card"></i><input type="text" id="sdms_code" placeholder="SDMS Code" required></div>
+        <div class="input-group"><i class="fas fa-lock"></i><input type="password" id="password" placeholder="Password" required></div>
+        <button type="submit"><i class="fas fa-sign-in-alt"></i> Login</button>
     </form>
-    <button id="langToggle" class="mode-toggle" onclick="toggleLanguage()" style="width:auto; margin-top:10px">Kinyarwanda</button>
-    <div style="margin-top:20px;font-size:12px;color:#888">First time? Use your SDMS Code to set a password.</div>
+    <div class="language-switch">
+        <button class="mode-toggle" onclick="toggleMode()"><i class="fas fa-moon"></i> Dark/Light</button>
+    </div>
+    <div class="back-home"><a href="index.html"><i class="fas fa-arrow-left"></i> Back to Home</a></div>
+    <div class="footer-links" style="margin-top:20px; font-size:12px; text-align:center; color:#888">
+        <p>Need help? Contact IT Support: +250 788 123 456</p>
+    </div>
 </div>
+
+<footer class="footer">
+    <div class="social">
+        <a href="#"><i class="fab fa-facebook"></i></a>
+        <a href="#"><i class="fab fa-twitter"></i></a>
+        <a href="#"><i class="fab fa-instagram"></i></a>
+        <a href="#"><i class="fab fa-linkedin"></i></a>
+    </div>
+    <p><i class="far fa-copyright"></i> 2026 G.S. Murama – All rights reserved | Kisaro, Rwanda</p>
+    <p>Digital School Management System</p>
+</footer>
+
 <script>
-const API_BASE = 'http://localhost:8000/api';
+const API_BASE = '/api';
+function toggleMode() {
+    document.body.classList.toggle('dark-mode');
+    localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+    if (document.body.classList.contains('dark-mode')) {
+        document.querySelector('.login-container').style.background = 'rgba(45,45,45,0.95)';
+        document.querySelector('.login-container').style.color = '#eee';
+    } else {
+        document.querySelector('.login-container').style.background = 'rgba(255,255,255,0.95)';
+        document.querySelector('.login-container').style.color = '#000';
+    }
+}
+if (localStorage.getItem('darkMode') === 'true') toggleMode();
+
+let currentLang = localStorage.getItem('lang') || 'en';
+let translations = {};
+async function loadLanguage(lang) {
+    try {
+        const res = await fetch(`/lang/${lang}.json`);
+        translations = await res.json();
+        currentLang = lang;
+        localStorage.setItem('lang', lang);
+        translatePage();
+    } catch(e) {}
+}
+function translatePage() {
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (translations[key]) el.innerHTML = translations[key];
+    });
+    const toggle = document.getElementById('langToggle');
+    if (toggle) toggle.innerHTML = currentLang === 'en' ? 'Kinyarwanda' : 'English';
+}
+function toggleLanguage() {
+    const newLang = currentLang === 'en' ? 'rw' : 'en';
+    loadLanguage(newLang);
+}
+loadLanguage(currentLang);
+
 document.getElementById('loginForm').onsubmit = async (e) => {
     e.preventDefault();
     const sdms = document.getElementById('sdms_code').value;
     const pwd = document.getElementById('password').value;
     try {
         const res = await fetch(`${API_BASE}/login.php`, {
-            method: 'POST',
-            headers: {'Content-Type':'application/json'},
-            body: JSON.stringify({sdms_code: sdms, password: pwd})
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({sdms_code:sdms, password:pwd})
         });
         const data = await res.json();
         if(data.success) {
@@ -42,13 +127,13 @@ document.getElementById('loginForm').onsubmit = async (e) => {
         } else if(data.requires_setup) {
             window.location.href = `setup.html?code=${data.sdms_code}`;
         } else {
-            document.getElementById('msg').innerHTML = `<div class="error">❌ ${data.message}</div>`;
+            document.getElementById('msg').innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${data.message}`;
         }
     } catch(err) {
-        document.getElementById('msg').innerHTML = `<div class="error">❌ Backend error</div>`;
+        document.getElementById('msg').innerHTML = `<i class="fas fa-plug"></i> Backend error: ${err.message}`;
     }
 };
 </script>
-    <script src="/js/lang.js"></script>
+<script src="/js/lang.js"></script>
 </body>
 </html>

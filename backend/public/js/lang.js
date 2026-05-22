@@ -21,9 +21,8 @@ function translatePage() {
             }
         }
     });
-    // Update toggle button text
-    const toggleBtn = document.getElementById('langToggle');
-    if (toggleBtn) toggleBtn.innerHTML = currentLang === 'en' ? 'Kinyarwanda' : 'English';
+    const toggle = document.getElementById('langToggle');
+    if (toggle) toggle.innerHTML = currentLang === 'en' ? 'Kinyarwanda' : 'English';
 }
 
 function toggleLanguage() {
