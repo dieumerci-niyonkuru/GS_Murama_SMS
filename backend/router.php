@@ -26,7 +26,7 @@ if (file_exists($file) && !is_dir($file)) {
     exit;
 }
 
-// Default to public/index.html (homepage)
+// Default to public/index.html
 $index = __DIR__ . '/public/index.html';
 if (file_exists($index)) {
     readfile($index);

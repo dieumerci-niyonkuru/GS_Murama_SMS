@@ -8,7 +8,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') exit(0);
 
 $db_path = dirname(__DIR__) . '/config/Database.php';
 if (!file_exists($db_path)) {
-    echo json_encode(["success" => false, "message" => "Database config not found"]);
+    echo json_encode(["success"=>false, "message"=>"Database config not found"]);
     exit();
 }
 require_once $db_path;

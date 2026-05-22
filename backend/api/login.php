@@ -6,12 +6,7 @@ header("Content-Type: application/json");
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') exit(0);
 
-$db_path = dirname(__DIR__) . '/config/Database.php';
-if (!file_exists($db_path)) {
-    echo json_encode(["success" => false, "message" => "Database config not found"]);
-    exit();
-}
-require_once $db_path;
+require_once '../config/Database.php';
 
 $data = json_decode(file_get_contents("php://input"), true);
 if (!isset($data['sdms_code']) || !isset($data['password'])) {
@@ -30,7 +25,7 @@ if (!$user) {
     exit();
 }
 
-// First login (no password set)
+// First login
 if ($user['is_first_login'] == 1 || empty($user['password'])) {
     echo json_encode([
         "success"=>false,
@@ -41,7 +36,6 @@ if ($user['is_first_login'] == 1 || empty($user['password'])) {
     exit();
 }
 
-// Verify password
 if (!password_verify($data['password'], $user['password'])) {
     echo json_encode(["success"=>false, "message"=>"Invalid password"]);
     exit();
@@ -59,15 +53,14 @@ $token = base64_encode(json_encode([
     'exp' => time() + 86400 * 7
 ]));
 
-// Delete any existing sessions for this user
+// Delete old sessions
 $del = $db->prepare("DELETE FROM admin_sessions WHERE admin_id = ?");
 $del->execute([$user['id']]);
 
-// Store new session
 $sess = $db->prepare("INSERT INTO admin_sessions (admin_id, token, ip_address, user_agent, expires_at) VALUES (?, ?, ?, ?, DATE_ADD(NOW(), INTERVAL 7 DAY))");
 $sess->execute([$user['id'], $token, $_SERVER['REMOTE_ADDR'], $_SERVER['HTTP_USER_AGENT']]);
 
-// Get permissions – use column 'role' (if your table uses 'role')
+// Get permissions
 $perm = $db->prepare("SELECT * FROM role_permissions WHERE role = ?");
 $perm->execute([$user['role']]);
 $permissions = $perm->fetch(PDO::FETCH_ASSOC);
@@ -83,6 +76,7 @@ echo json_encode([
         "role" => $user['role'],
         "phone" => $user['phone'],
         "email" => $user['email'],
+        "profile_pic" => $user['profile_pic'],
         "permissions" => $permissions
     ]
 ]);

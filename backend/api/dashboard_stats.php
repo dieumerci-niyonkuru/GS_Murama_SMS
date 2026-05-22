@@ -1,7 +1,14 @@
 <?php
 header("Access-Control-Allow-Origin: *");
 header("Content-Type: application/json");
-require_once '../config/Database.php';
+
+$db_path = dirname(__DIR__) . '/config/Database.php';
+if (!file_exists($db_path)) {
+    http_response_code(500);
+    echo json_encode(["error" => "Database.php not found at $db_path"]);
+    exit();
+}
+require_once $db_path;
 
 $db = (new Database())->getConnection();
 $totalStudents = $db->query("SELECT COUNT(*) FROM students")->fetchColumn();
